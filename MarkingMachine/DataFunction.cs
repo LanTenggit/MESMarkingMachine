@@ -138,6 +138,29 @@ namespace MarkingMachine
             }
         }
 
+        /// <summary>
+        /// 切割图片
+        /// </summary>
+        /// <param name="sourceBitmap">图片对象</param>
+        /// <param name="width">切割的宽度</param>
+        /// <param name="height">切割的高度</param>
+        /// <param name="offsetX">开始的x</param>
+        /// <param name="offsetY">开始的y</param>
+        /// <returns></returns>
+        public static Bitmap GetPartOfImageRec(Bitmap sourceBitmap, int width, int height, int offsetX, int offsetY)
+        {
+            Bitmap resultBitmap = new Bitmap(width, height);
+            using (Graphics g = Graphics.FromImage(resultBitmap))
+            {
+                Rectangle resultRectangle = new Rectangle(0, 0, width, height);
+                Rectangle sourceRectangle = new Rectangle(0 + offsetX, 0 + offsetY, width, height);
+                g.DrawImage(sourceBitmap, resultRectangle, sourceRectangle, GraphicsUnit.Pixel);
+            }
+            return resultBitmap;
+        }
+
+
+
 
     }
 }

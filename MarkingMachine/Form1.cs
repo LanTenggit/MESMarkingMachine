@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HalconHelper;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -65,8 +66,8 @@ namespace MarkingMachine
             {
                 cb_com.Items.Add(item);
             }
-         
-            if (ini.IniReadValue("Serial", "Port")!=string.Empty|| ini.IniReadValue("Serial", "Port") != "")
+
+            if (ini.IniReadValue("Serial", "Port") != string.Empty || ini.IniReadValue("Serial", "Port") != "")
             {
                 cb_com.SelectedItem = ini.IniReadValue("Serial", "Port");
             }
@@ -74,7 +75,7 @@ namespace MarkingMachine
             {
                 cb_com.SelectedItem = cb_com.Items[0];
             }
-          
+
             int[] boty = { 2400, 4800, 9600, 19200 };
             foreach (var item in boty)
             {
@@ -92,7 +93,7 @@ namespace MarkingMachine
 
             if (ini.IniReadValue("Order", "OK") != string.Empty || ini.IniReadValue("Order", "OK") != "")
             {
-               tb_OK.Text = ini.IniReadValue("Order", "OK");
+                tb_OK.Text = ini.IniReadValue("Order", "OK");
             }
 
             if (ini.IniReadValue("Order", "NG") != string.Empty || ini.IniReadValue("Order", "NG") != "")
@@ -100,14 +101,7 @@ namespace MarkingMachine
                 tb_NG.Text = ini.IniReadValue("Order", "NG");
             }
 
-            if (ini.IniReadValue("MesStatePoint", "X") != string.Empty || ini.IniReadValue("MesStatePoint", "X") != "")
-            {
-                tb_X.Text = ini.IniReadValue("MesStatePoint", "X");
-            }
-            if (ini.IniReadValue("MesStatePoint", "Y") != string.Empty || ini.IniReadValue("MesStatePoint", "Y") != "")
-            {
-                tb_Y.Text = ini.IniReadValue("MesStatePoint", "Y");
-            }
+           
 
         }
         /// <summary>
@@ -125,8 +119,6 @@ namespace MarkingMachine
                     cb_boty.Enabled = true;
                     tb_NG.Enabled = true;
                     tb_OK.Enabled = true;
-                    tb_X.Enabled = true;
-                    tb_Y.Enabled = true;
                     bn_sure.BackColor = Color.White;
                     bn_sure.Text = "打开";
                     serial.Close();
@@ -138,8 +130,6 @@ namespace MarkingMachine
                     cb_boty.Enabled = false;
                     tb_NG.Enabled = false;
                     tb_OK.Enabled = false;
-                    tb_X.Enabled = false;
-                    tb_Y.Enabled = false;
                     bn_sure.BackColor = Color.Green;
                     bn_sure.Text = "关闭";
                     serial.PortName = cb_com.SelectedItem.ToString();
@@ -149,14 +139,10 @@ namespace MarkingMachine
                     serial.Handshake = Handshake.None;
                     serial.Open();
 
-                    ini.IniWriteValue("Serial","Port",cb_com.SelectedItem.ToString());
+                    ini.IniWriteValue("Serial", "Port", cb_com.SelectedItem.ToString());
                     ini.IniWriteValue("Serial", "Boty", cb_boty.SelectedItem.ToString());
                     ini.IniWriteValue("Order", "OK", tb_OK.Text);
                     ini.IniWriteValue("Order", "NG", tb_NG.Text);
-                    ini.IniWriteValue("MesStatePoint", "X", tb_X.Text);
-                    ini.IniWriteValue("MesStatePoint", "Y", tb_Y.Text);
-
-
                     Thread th_Point = new Thread(new ThreadStart(Point_Color));
                     th_Point.Start();
 
@@ -168,7 +154,7 @@ namespace MarkingMachine
             catch (Exception)
             {
 
-              
+
             }
 
 
@@ -207,13 +193,13 @@ namespace MarkingMachine
                             IntPtr hdc = GetDC(new IntPtr(0));//取到设备场景(0就是全屏的设备场景)
                             string txtStartX = MousePosition.X.ToString();
                             string txtStartY = MousePosition.Y.ToString();
-                            label7.Text = "坐标：X:" + txtStartX + ",Y:" + txtStartY;
+                            //label7.Text = "坐标：X:" + txtStartX + ",Y:" + txtStartY;
                             int c = GetPixel(hdc, p);//取指定点颜色
                             int r = (c & 0xFF);//转换R
                             int g = (c & 0xFF00) / 256;//转换G
                             int b = (c & 0xFF0000) / 65536;//转换B
                             //picturePintColor.BackColor = Color.FromArgb(r, g, b);
-                            label8.Text = "RGB:" + r.ToString() + "," + g.ToString() + "," + b.ToString();
+                            //label8.Text = "RGB:" + r.ToString() + "," + g.ToString() + "," + b.ToString();
                         }));
                     }
 
@@ -221,7 +207,7 @@ namespace MarkingMachine
                 catch (Exception ex)
                 {
                     //string txtPath = Path.GetFullPath("Error.txt");
-                    DataFunction. txtWrite( ex.ToString());
+                    DataFunction.txtWrite(ex.ToString());
 
                 }
 
@@ -260,7 +246,7 @@ namespace MarkingMachine
             IntPtr NodeHwnd = (IntPtr)0;
             ///通过类名标题找句柄
             IntPtr maindHwnd = FindWindow("WindowsForms10.Window.8.app.0.141b42a_r6_ad1", null); //获得句柄   
-                                                                        ///通过进程
+                                                                                                 ///通过进程
             //Process[] pro = Process.GetProcessesByName("IMEI_Check");
             //maindHwnd = Process.GetProcessesByName("IMEI_Check")[0].MainWindowHandle;
             ///找到窗口句柄的坐标
@@ -288,7 +274,7 @@ namespace MarkingMachine
                 //保存为文件 
                 //myImage.Save(imgpath);
                 Bitmap map = (Bitmap)myImage;
-           
+
 
                 ////运行状态
                 int MesStateX = Convert.ToInt32(ini.IniReadValue("MesStatePoint", "X"));
@@ -304,7 +290,7 @@ namespace MarkingMachine
                 //颜色的 BLUE 分量值
                 byte Runblue = RunpixelColor.B;
                 //string RunState = string.Empty;
-            
+
                 if (Runred == 0 && Rungreen >= 128 && Runblue == 0)
                 {
                     ///绿色
@@ -327,6 +313,45 @@ namespace MarkingMachine
             return MesStateList;
         }
 
+
+        Bitmap IMgbit;
+        /// <summary>
+        /// 获取MesState
+        /// </summary>
+        /// <param name="FileName"></param>
+        /// <returns></returns>
+        public bool IsMesState(string FileName)
+        {
+            bool IsTrue = false;
+
+            IMgbit = new Bitmap(FileName);
+            string ModelStr = Path.GetFullPath("ModelImg");
+            ModelStr += "\\Model.dfm";
+            //ModelBit = new Bitmap(ModelStr);
+            HalconHelper.TemplateMatching templateMatching = new TemplateMatching();
+            var result = templateMatching.Findtemplates(new HalconHelper.HalconCommonly().FromBitmap32(IMgbit), ModelStr); //模板路径 //图像
+            if (result.Count() > 0)
+            {
+                for (int i = 0; i < result.Count; i++)
+                {
+                    if (result[i].value > 0.9)
+                    {
+                        IsTrue = true;
+                        i = result.Count;
+                    }
+                }
+            }
+            else
+            {
+                IsTrue = false;
+
+            }
+            IMgbit.Dispose();
+            return IsTrue;
+        }
+
+
+
         /// <summary>
         /// 保存的图片
         /// </summary>
@@ -335,15 +360,16 @@ namespace MarkingMachine
         /// <summary>
         /// 获取MES状态
         /// </summary>
-        public void MesState() {
-            
+        public void MesState()
+        {
+
             //获得当前屏幕的分辨率   
             Screen scr = Screen.PrimaryScreen;
             Rectangle rc = scr.Bounds;
             int iWidth = rc.Width;
             int iHeight = rc.Height;
             //创建一个和屏幕一样大的Bitmap  
-            Image myImage = new Bitmap(iWidth, iHeight /2);
+            Image myImage = new Bitmap(iWidth, iHeight - 50);
             //Image myImage = new Bitmap(688, 520);
             //从一个继承自Image类的对象中创建Graphics对象  
             Graphics g = Graphics.FromImage(myImage);
@@ -351,71 +377,77 @@ namespace MarkingMachine
             {
                 try
                 {
-
-             
-                Thread.Sleep(20);
-
-                string imgpath = Path.GetFullPath("images");
-                imgpath += "\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
-
-                //抓屏并拷贝到myimage里 
-                g.CopyFromScreen(new Point(0, 0), new Point(0, 0), new Size(iWidth, iHeight));
-                //保存为文件
-                myImage.Save(imgpath);
-                string Contrast_picturePath = imgpath;
-                byte[] JieTuByte = DataFunction.GetImageByte(Contrast_picturePath);
-                string jietustr = DataFunction.GetBase64StringByImage(myImage);
-                //myImage.Dispose();
-                if (jietustr == SaveImgstr)
-                {
-                    string Write = "相同图片";
-               
-                }
-                else
-                {
-                    SaveImgstr = jietustr;
-
-                    List<MesStateClass> MesState = GetMESState();
-                    string RunState = MesState[0].RunState;
-                    string Writestr = RunState;
-                    this.Invoke(new Action(() =>
+                    Thread.Sleep(20);
+                    if (serial.IsOpen)
                     {
-                        if (RunState == "OK")
-                        {
-                            Writestr = tb_OK.Text;
-                        }
-                        else if (RunState == "NG")
-                        {
-                            Writestr = tb_NG.Text;
-                        }
-                    }));
+                        string imgpath = Path.GetFullPath("images");
+                        imgpath += "\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
 
-                    byte[] byteArray = System.Text.Encoding.ASCII.GetBytes(Writestr);
-                    Writestr = HexStringTenByte.ByteArrayToHexString(byteArray);
-                    byte[] buff = HexStringTenByte.HexString2Bytes(Writestr);
-                    serial.Write(buff, 0, buff.Length);
-                    this.Invoke(new Action(() => {
-                        this.lb_send.Text = "Send:" + DateTime.Now.ToString("HH:mm:ss");
-                        this.tb_send.Text = RunState;
-                    }));
-                 
+                        //抓屏并拷贝到myimage里 
+                        g.CopyFromScreen(new Point(0, 0), new Point(0, 0), new Size(iWidth, iHeight));
+                        //保存为文件
+                        myImage.Save(imgpath);
+
+                        //string Contrast_picturePath = imgpath;
+                        //byte[] JieTuByte = DataFunction.GetImageByte(Contrast_picturePath);
+                        string jietustr = DataFunction.GetBase64StringByImage(myImage);
+                        //myImage.Dispose();
+                        if (jietustr == SaveImgstr)
+                        {
+                            string Write = "相同图片";
+
+                        }
+                        else
+                        {
+                            SaveImgstr = jietustr;
+                            string Writestr = string.Empty;
+                            string Runstate = string.Empty;
+                            this.Invoke(new Action(() =>
+                            {
+
+                                if (IsMesState(imgpath))
+                                {
+                                    Writestr = tb_OK.Text;
+                                }
+                                else
+                                {
+                                    Writestr = tb_NG.Text;
+                                }
+                            }));
+
+                            Runstate = Writestr;
+
+                            byte[] byteArray = System.Text.Encoding.ASCII.GetBytes(Writestr);
+                            Writestr = HexStringTenByte.ByteArrayToHexString(byteArray);
+                            byte[] buff = HexStringTenByte.HexString2Bytes(Writestr);
+                            serial.Write(buff, 0, buff.Length);
+                            this.Invoke(new Action(() =>
+                            {
+                                this.lb_send.Text = "Send:" + DateTime.Now.ToString("HH:mm:ss");
+                                this.tb_send.Text = Runstate;
+                            }));
+
+                        }
+                        string ImgPath = Path.GetFullPath("images");
+                        int FileNum = DataFunction.GetFileNum(ImgPath);
+                        if (FileNum >= 10)
+                        {
+                            DataFunction.DelectDir(ImgPath);
+                        }
+                        GC.Collect();
+
+                    }
+
+
                 }
-                string ImgPath = Path.GetFullPath("images");
-                int FileNum = DataFunction.GetFileNum(ImgPath);
-                if (FileNum>=10)
+                catch (Exception ex)
                 {
-                    DataFunction.DelectDir(ImgPath);
-                }
-                GC.Collect();
-               }
-               catch (Exception ex)
-              {
 
                     DataFunction.txtWrite(ex.ToString());
-              }
+                }
             }
 
-           
+
         }
 
         private void Form1_Resize(object sender, EventArgs e)
@@ -475,6 +507,12 @@ namespace MarkingMachine
                 this.ShowInTaskbar = true;
             }
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            SetROI roi = new SetROI();
+            roi.Show();
+        }
     }
 
 
@@ -482,10 +520,11 @@ namespace MarkingMachine
 
 
 
-    public class MesStateClass {
+    public class MesStateClass
+    {
 
         public string RunState { get; set; }
-     
+
 
 
     }
