@@ -101,9 +101,31 @@ namespace MarkingMachine
                 tb_NG.Text = ini.IniReadValue("Order", "NG");
             }
 
-           
+
+
+
+            if (ini.IniReadValue("Number", "LogNum") != string.Empty || ini.IniReadValue("Number", "LogNum") != "")
+
+            {
+                tb_LogNum.Text = ini.IniReadValue("Number", "LogNum");
+            }
+
+            if (ini.IniReadValue("Number", "Sum") != string.Empty || ini.IniReadValue("Number", "Sum") != "")
+
+            {
+                tb_Sum.Text = ini.IniReadValue("Number", "Sum");
+            }
+
+            Thread th_Point = new Thread(new ThreadStart(Point_Color));
+            th_Point.Start();
+
+
+            Thread th_GetMes = new Thread(MesState);
+            th_GetMes.Start();
 
         }
+
+        StringBuilder StringBuilder = new StringBuilder();
         /// <summary>
         /// /打开或关闭串口
         /// </summary>
@@ -119,6 +141,8 @@ namespace MarkingMachine
                     cb_boty.Enabled = true;
                     tb_NG.Enabled = true;
                     tb_OK.Enabled = true;
+                    tb_LogNum.Enabled = true;
+                    tb_Sum.Enabled = true;
                     bn_sure.BackColor = Color.White;
                     bn_sure.Text = "打开";
                     serial.Close();
@@ -130,6 +154,10 @@ namespace MarkingMachine
                     cb_boty.Enabled = false;
                     tb_NG.Enabled = false;
                     tb_OK.Enabled = false;
+                    tb_LogNum.Enabled = false;
+                    tb_Sum.Enabled = false;
+
+
                     bn_sure.BackColor = Color.Green;
                     bn_sure.Text = "关闭";
                     serial.PortName = cb_com.SelectedItem.ToString();
@@ -143,12 +171,11 @@ namespace MarkingMachine
                     ini.IniWriteValue("Serial", "Boty", cb_boty.SelectedItem.ToString());
                     ini.IniWriteValue("Order", "OK", tb_OK.Text);
                     ini.IniWriteValue("Order", "NG", tb_NG.Text);
-                    Thread th_Point = new Thread(new ThreadStart(Point_Color));
-                    th_Point.Start();
 
+                    ini.IniWriteValue("Number", "LogNum", tb_LogNum.Text);
+                    ini.IniWriteValue("Number", "Sum", tb_Sum.Text);
 
-                    Thread th_GetMes = new Thread(MesState);
-                    th_GetMes.Start();
+                
                 }
             }
             catch (Exception)
@@ -156,18 +183,7 @@ namespace MarkingMachine
 
 
             }
-
-
-            //Process[] pro = Process.GetProcesses();
-            //string[] proName = new string[pro.Count()];
-            //for (int i = 0; i < pro.Count(); i++)
-            //{
-            //    proName[i] = pro[i].ProcessName;
-            //}
-            ////IntPtr a = GetForegroundWindow();
-            //GetMESState();
-
-
+          
         }
 
         //string txtPath = Path.GetFullPath("Error.txt");
@@ -210,6 +226,11 @@ namespace MarkingMachine
                     DataFunction.txtWrite(ex.ToString());
 
                 }
+                finally
+                {
+                    GC.Collect();
+
+                }
 
 
             }
@@ -237,7 +258,7 @@ namespace MarkingMachine
         int yuanPointY = 0;
 
         /// <summary>
-        /// 获取MES状态
+        /// 通过颜色获取MES状态
         /// </summary>
         public List<MesStateClass> GetMESState()
         {
@@ -315,42 +336,53 @@ namespace MarkingMachine
 
 
         Bitmap IMgbit;
+        HalconHelper.TemplateMatching templateMatching;
         /// <summary>
-        /// 获取MesState
+        /// 通过Hanlcon模板匹配获取MesState
         /// </summary>
         /// <param name="FileName"></param>
         /// <returns></returns>
         public bool IsMesState(string FileName)
         {
+           
             bool IsTrue = false;
-
-            IMgbit = new Bitmap(FileName);
-            string ModelStr = Path.GetFullPath("ModelImg");
-            ModelStr += "\\Model.dfm";
-            //ModelBit = new Bitmap(ModelStr);
-            HalconHelper.TemplateMatching templateMatching = new TemplateMatching();
-            var result = templateMatching.Findtemplates(new HalconHelper.HalconCommonly().FromBitmap32(IMgbit), ModelStr); //模板路径 //图像
-            if (result.Count() > 0)
+            try
             {
-                for (int i = 0; i < result.Count; i++)
+                IMgbit = new Bitmap(FileName);
+                string ModelStr = Path.GetFullPath("ModelImg");
+                ModelStr += "\\Model.dfm";
+                //ModelBit = new Bitmap(ModelStr);
+                templateMatching = new TemplateMatching();
+                var result = templateMatching.Findtemplates(new HalconHelper.HalconCommonly().FromBitmap32(IMgbit), ModelStr); //模板路径 //图像
+                if (result.Count() > 0)
                 {
-                    if (result[i].value > 0.9)
+                    for (int i = 0; i < result.Count; i++)
                     {
-                        IsTrue = true;
-                        i = result.Count;
+                        if (result[i].value > 0.9)
+                        {
+                            IsTrue = true;
+                            i = result.Count;
+                            result = null;
+                        }
                     }
                 }
+                else
+                {
+                    IsTrue = false;
+                    result = null;
+                }
+                IMgbit.Dispose();
             }
-            else
+            catch (Exception)
             {
-                IsTrue = false;
+
 
             }
-            IMgbit.Dispose();
+            GC.Collect();
             return IsTrue;
         }
 
-
+        int logNum = 0;
 
         /// <summary>
         /// 保存的图片
@@ -362,6 +394,8 @@ namespace MarkingMachine
         /// </summary>
         public void MesState()
         {
+       
+           
 
             //获得当前屏幕的分辨率   
             Screen scr = Screen.PrimaryScreen;
@@ -373,13 +407,18 @@ namespace MarkingMachine
             //Image myImage = new Bitmap(688, 520);
             //从一个继承自Image类的对象中创建Graphics对象  
             Graphics g = Graphics.FromImage(myImage);
+            string jietustr = string.Empty;
+
             while (true)
             {
                 try
                 {
-                    Thread.Sleep(20);
+                    Thread.Sleep(100);
                     if (serial.IsOpen)
                     {
+                        this.Invoke(new Action(() => {
+                            logNum = Convert.ToInt32(tb_LogNum.Text);
+                        }));
                         string imgpath = Path.GetFullPath("images");
                         imgpath += "\\" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".png";
 
@@ -390,7 +429,7 @@ namespace MarkingMachine
 
                         //string Contrast_picturePath = imgpath;
                         //byte[] JieTuByte = DataFunction.GetImageByte(Contrast_picturePath);
-                        string jietustr = DataFunction.GetBase64StringByImage(myImage);
+                         jietustr = DataFunction.GetBase64StringByImage(myImage);
                         //myImage.Dispose();
                         if (jietustr == SaveImgstr)
                         {
@@ -407,11 +446,21 @@ namespace MarkingMachine
 
                                 if (IsMesState(imgpath))
                                 {
-                                    Writestr = tb_OK.Text;
+                                  
+                                    logNum++;
+                                    this.Invoke(new Action(() =>
+                                    {
+                                        Writestr = tb_OK.Text;
+                                        tb_LogNum.Text = logNum.ToString();
+                                       
+                                    }));
                                 }
                                 else
                                 {
-                                    Writestr = tb_NG.Text;
+                                    this.Invoke(new Action(() => {
+
+                                        Writestr = tb_NG.Text;
+                                    }));
                                 }
                             }));
 
@@ -435,16 +484,17 @@ namespace MarkingMachine
                             DataFunction.DelectDir(ImgPath);
                         }
                         GC.Collect();
-
+                        //myImage.Dispose();
                     }
 
 
                 }
                 catch (Exception ex)
                 {
-
+                 
                     DataFunction.txtWrite(ex.ToString());
                 }
+                GC.Collect();
             }
 
 
@@ -512,6 +562,46 @@ namespace MarkingMachine
         {
             SetROI roi = new SetROI();
             roi.Show();
+        }
+
+        private void tb_NG_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox1_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void groupBox2_Enter(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+        /// <summary>
+        /// 清除数量
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void button2_Click(object sender, EventArgs e)
+        {
+            tb_LogNum.Text = "0";
+            logNum = 0;
         }
     }
 

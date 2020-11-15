@@ -17,12 +17,20 @@ namespace MarkingMachine
         /// <param name="str"></param>
         public static void txtWrite(string str)
         {
-            string padjfdtxt = Path.GetFullPath("Error.txt");
-            StreamWriter sw = new StreamWriter(padjfdtxt, true);
-            //System.Text.Encoding.GetEncoding("GB2312") = 
-            str += System.DateTime.Now;
-            sw.WriteLine(str);
-            sw.Close();
+            try
+            {
+                string padjfdtxt = Path.GetFullPath("Error.txt");
+                StreamWriter sw = new StreamWriter(padjfdtxt, true);
+                //System.Text.Encoding.GetEncoding("GB2312") = 
+                str += System.DateTime.Now;
+                sw.WriteLine(str);
+                sw.Close();
+            }
+            catch (Exception)
+            {
+
+            }
+
 
             //Dim strArr As String() = {str}
             //File.WriteAllLines(txtPath, strArr, System.Text.Encoding.GetEncoding("GB2312")) '写入到新文件中

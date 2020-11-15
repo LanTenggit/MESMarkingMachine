@@ -37,7 +37,7 @@ namespace MarkingMachine
 
             }
 
-
+            GC.Collect();
 
           
         }
